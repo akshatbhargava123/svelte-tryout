@@ -1,22 +1,36 @@
 <script>
+	import './utils/init-firebase';
+	import { onMount } from "svelte";
+	import { getAuth, signInAnonymously  } from 'firebase/auth';
 	import Chat from './components/Chat.svelte';
 	import Welcome from './components/Welcome.svelte';
 
-	let userName = sessionStorage.getItem('userName');
-	let loggedIn = !!userName;
+	let userName = '';
+	let loggedIn = false;
 
-	function onAuthComplete() {
-		loggedIn = true;
-		userName = sessionStorage.getItem('userName');
+	const auth = getAuth();
+
+	async function onSubmitName() {
+		const { user } = await signInAnonymously(auth);
+		if (!user.uid) {
+			alert('Something went wrong! Reload and try again.');
+		}
 	}
 
-	function onSubmitName() {
-		return new Promise(resolve => {
-			console.log('logged in!');
-			setTimeout(resolve, 3000);
-			onAuthComplete();
-		})
-	}
+	onMount(() => {
+		const unsubscriber = auth.onAuthStateChanged((auth) => {
+			if (auth.uid) {
+				loggedIn = true;
+				userName = sessionStorage.getItem('userName');
+			} else {
+				loggedIn = false;
+				userName = '';
+				sessionStorage.clear();
+			}
+		});
+
+		return unsubscriber;
+	});
 
 </script>
 
@@ -27,25 +41,3 @@
 		<Chat userName={userName} />
 	{/if}
 </main>
-
-<style>
-	main {
-		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
-	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
-
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
-	}
-</style>
