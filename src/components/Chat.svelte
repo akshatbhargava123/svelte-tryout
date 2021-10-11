@@ -1,6 +1,12 @@
 <script>
   import { onMount } from "svelte";
-  import { getFirestore, getDocs, addDoc, collection } from 'firebase/firestore';
+  import {
+    query,
+    addDoc,
+    collection,
+    onSnapshot,
+    getFirestore,
+  } from 'firebase/firestore';
   import { getAuth } from 'firebase/auth';
   import Message from './Message.svelte';
 
@@ -16,6 +22,7 @@
       text,
       timestamp,
       userId: auth.currentUser.uid,
+      userName: sessionStorage.getItem('userName'),
     };
   }
 
@@ -25,9 +32,17 @@
 
     inputText = '';
   }
-  
+
   onMount(() => {
-    
+    const q = query(collection(firestore, 'chats'));
+    const unsubscribe = onSnapshot(q, snapshot => {
+      const messages = snapshot.docs.map(doc => doc.data());
+      const sorted = messages.sort((m1, m2) => m1.timestamp - m2.timestamp);
+      chatMessages = [...sorted];
+      console.log(sorted)
+    });
+
+    return unsubscribe;
   });
 
   export let userName;
