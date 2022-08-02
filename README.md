@@ -1,4 +1,4 @@
-# Chatapp (Trying out Svelte)
+# Chatapp (60-min Svelte tryout)
 
 ```bash
 npx degit sveltejs/template svelte-app
